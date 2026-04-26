@@ -6,8 +6,9 @@ obj/
 .vs/
 *.userprefs
 
-## SQLBook runtime data
-~/sqlbook/
+## SQLBook runtime data (db files + notebooks that land in repo root during dev)
+*.db
+notebooks/
 
 ## Secrets
 appsettings.Development.json
