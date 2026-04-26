@@ -1,0 +1,48 @@
+@model (SQLBook.Web.Models.Notebook Notebook, SQLBook.Web.Models.Cell Cell)
+@{
+    var nb = Model.Notebook;
+    var cell = Model.Cell;
+}
+
+<div class="nb-cell card mb-3" id="cell-@cell.Id" data-cell-id="@cell.Id">
+    <div class="card-header d-flex justify-content-between align-items-center py-1 px-3 bg-light">
+        <span class="badge @(cell.Type == "sql" ? "bg-primary" : "bg-secondary") me-2">@cell.Type.ToUpper()</span>
+
+        <div class="ms-auto d-flex gap-1">
+            @if (cell.Type == "sql")
+            {
+                <button class="btn btn-sm btn-success btn-run"
+                        hx-post="/query/run"
+                        hx-target="#result-@cell.Id"
+                        hx-swap="innerHTML"
+                        hx-include="#cell-form-@cell.Id">
+                    ▶ Run
+                </button>
+            }
+            <button class="btn btn-sm btn-outline-danger"
+                    hx-delete="/notebook/@nb.Id/cell/@cell.Id"
+                    hx-target="#cell-@cell.Id"
+                    hx-swap="outerHTML"
+                    hx-confirm="Delete this cell?">
+                ✕
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body p-2">
+        <form id="cell-form-@cell.Id">
+            <input type="hidden" name="cellId" value="@cell.Id" />
+            <textarea name="sql"
+                      class="form-control font-monospace"
+                      rows="4"
+                      placeholder="@(cell.Type == "sql" ? "SELECT * FROM ..." : "# Markdown content...")"
+                      hx-post="/notebook/@nb.Id/autosave"
+                      hx-trigger="input delay:800ms"
+                      hx-swap="none"
+                      hx-vals='{"title": ""}'
+                      hx-include="#notebook-title">@cell.Content</textarea>
+        </form>
+    </div>
+
+    <div id="result-@cell.Id" class="cell-result"></div>
+</div>

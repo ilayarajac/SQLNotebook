@@ -1,0 +1,24 @@
+@model List<SQLBook.Web.Services.SchemaTable>
+
+@if (!Model.Any())
+{
+    <small class="text-muted">No tables found.</small>
+}
+else
+{
+    foreach (var table in Model)
+    {
+        <details class="mb-1">
+            <summary class="small fw-semibold" style="cursor:pointer;">📋 @table.TableName</summary>
+            <ul class="list-unstyled ms-3 mb-0">
+                @foreach (var col in table.Columns)
+                {
+                    <li class="small text-muted">
+                        <span class="font-monospace">@col.ColumnName</span>
+                        <span class="badge bg-light text-dark border ms-1" style="font-size:.65rem;">@col.DataType</span>
+                    </li>
+                }
+            </ul>
+        </details>
+    }
+}

@@ -1,0 +1,24 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+
+## SQLBook runtime data
+~/sqlbook/
+
+## Secrets
+appsettings.Development.json
+*.pfx
+*.key
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Rider/VS Code
+.idea/
+.vscode/
+*.sln.DotSettings.user

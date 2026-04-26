@@ -1,0 +1,83 @@
+@model SQLBook.Web.Models.Notebook
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="notebook-layout d-flex" style="min-height: calc(100vh - 56px);">
+
+    <!-- Schema Sidebar -->
+    <aside class="schema-sidebar border-end bg-light p-2" style="width:220px; min-width:220px; overflow-y:auto;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <small class="fw-bold text-muted text-uppercase">Schema</small>
+            <button class="btn btn-sm btn-outline-secondary py-0"
+                    hx-get="/schema"
+                    hx-target="#schema-tree"
+                    hx-swap="innerHTML">⟳</button>
+        </div>
+        <div id="schema-tree"
+             hx-get="/schema"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <small class="text-muted">Loading...</small>
+        </div>
+    </aside>
+
+    <!-- Main Editor Area -->
+    <div class="flex-grow-1 p-3">
+
+        <!-- Notebook Title -->
+        <div class="mb-3">
+            <input type="text"
+                   id="notebook-title"
+                   value="@Model.Title"
+                   class="form-control form-control-lg fw-bold border-0 border-bottom rounded-0 px-0"
+                   placeholder="Untitled Notebook"
+                   hx-post="/notebook/@Model.Id/autosave"
+                   hx-trigger="input delay:800ms"
+                   hx-swap="none"
+                   name="title" />
+        </div>
+
+        <!-- Cells Container -->
+        <div id="cells-container">
+            @foreach (var cell in Model.Cells.OrderBy(c => c.Order))
+            {
+                @await Html.PartialAsync("_Cell", (Model, cell))
+            }
+        </div>
+
+        <!-- Add Cell Buttons -->
+        <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary"
+                    hx-post="/notebook/@Model.Id/cell/add"
+                    hx-vals='{"type":"sql"}'
+                    hx-target="#cells-container"
+                    hx-swap="beforeend">
+                + SQL Cell
+            </button>
+            <button class="btn btn-sm btn-outline-secondary"
+                    hx-post="/notebook/@Model.Id/cell/add"
+                    hx-vals='{"type":"markdown"}'
+                    hx-target="#cells-container"
+                    hx-swap="beforeend">
+                + Markdown Cell
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Ctrl+Enter to run the focused cell
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const active = document.activeElement;
+        const cell = active?.closest('.nb-cell');
+        if (cell) {
+            const btn = cell.querySelector('.btn-run');
+            if (btn) htmx.trigger(btn, 'click');
+        }
+    }
+});
+</script>
+}
