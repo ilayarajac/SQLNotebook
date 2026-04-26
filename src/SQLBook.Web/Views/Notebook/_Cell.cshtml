@@ -11,7 +11,8 @@
         <div class="ms-auto d-flex gap-1">
             @if (cell.Type == "sql")
             {
-                <button class="btn btn-sm btn-success btn-run"
+                <button id="run-@cell.Id"
+                        class="btn btn-sm btn-success btn-run"
                         hx-post="/query/run"
                         hx-target="#result-@cell.Id"
                         hx-swap="innerHTML"
@@ -29,19 +30,38 @@
         </div>
     </div>
 
-    <div class="card-body p-2">
-        <form id="cell-form-@cell.Id">
-            <input type="hidden" name="cellId" value="@cell.Id" />
-            <textarea name="sql"
-                      class="form-control font-monospace"
-                      rows="4"
-                      placeholder="@(cell.Type == "sql" ? "SELECT * FROM ..." : "# Markdown content...")"
-                      hx-post="/notebook/@nb.Id/autosave"
-                      hx-trigger="input delay:800ms"
-                      hx-swap="none"
-                      hx-vals='{"title": ""}'
-                      hx-include="#notebook-title">@cell.Content</textarea>
-        </form>
+    <div class="card-body p-0">
+        @if (cell.Type == "sql")
+        {
+            <form id="cell-form-@cell.Id">
+                <input type="hidden" name="cellId" value="@cell.Id" />
+                <div class="cm-host"
+                     data-cell-id="@cell.Id"
+                     data-content="@Html.Raw(System.Web.HttpUtility.HtmlAttributeEncode(cell.Content))">
+                </div>
+                <input type="hidden" id="sql-@cell.Id" name="content" value="@cell.Content" />
+            </form>
+            <span id="autosave-trigger-@cell.Id"
+                  hx-post="/notebook/@nb.Id/autosave"
+                  hx-trigger="sqlbook:autosave"
+                  hx-swap="none"
+                  hx-include="#cell-form-@cell.Id, #notebook-title"
+                  style="display:none"></span>
+        }
+        else
+        {
+            <form id="cell-form-@cell.Id">
+                <input type="hidden" name="cellId" value="@cell.Id" />
+                <textarea name="content"
+                          class="form-control font-monospace border-0"
+                          rows="4"
+                          placeholder="# Markdown content..."
+                          hx-post="/notebook/@nb.Id/autosave"
+                          hx-trigger="input delay:800ms"
+                          hx-swap="none"
+                          hx-include="#cell-form-@cell.Id, #notebook-title">@cell.Content</textarea>
+            </form>
+        }
     </div>
 
     <div id="result-@cell.Id" class="cell-result"></div>

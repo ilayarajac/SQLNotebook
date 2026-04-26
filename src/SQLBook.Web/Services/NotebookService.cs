@@ -11,8 +11,9 @@ public class NotebookService(AppDb appDb, IConfiguration config)
 
     private string NotebooksDir()
     {
-        var dir = config["Notebooks:Directory"]
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sqlbook", "notebooks");
+        var dir = config["Notebooks:Directory"] is { Length: > 0 } d
+            ? d
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sqlbook", "notebooks");
         Directory.CreateDirectory(dir);
         return dir;
     }

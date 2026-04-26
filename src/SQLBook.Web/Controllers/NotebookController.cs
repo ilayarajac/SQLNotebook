@@ -59,7 +59,7 @@ public class NotebookController(NotebookService notebooks) : Controller
 
         notebook.Cells.RemoveAll(c => c.Id == cellId);
         await notebooks.SaveAsync(notebook);
-        return Ok();
+        return Content(""); // empty body triggers hx-swap="outerHTML" removal
     }
 
     [HttpPost("/notebook/{id}/cell/reorder")]
@@ -80,21 +80,25 @@ public class NotebookController(NotebookService notebooks) : Controller
     }
 
     [HttpPost("/notebook/{id}/autosave")]
-    public async Task<IActionResult> Autosave(string id, [FromForm] string title, [FromForm] List<CellFormData> cells)
+    public async Task<IActionResult> Autosave(
+        string id,
+        [FromForm] string? title,
+        [FromForm] string? cellId,
+        [FromForm] string? content)
     {
         var notebook = await notebooks.GetAsync(id);
         if (notebook is null) return NotFound();
 
-        notebook.Title = title;
-        foreach (var fd in cells)
+        if (!string.IsNullOrEmpty(title))
+            notebook.Title = title;
+
+        if (!string.IsNullOrEmpty(cellId))
         {
-            var cell = notebook.Cells.FirstOrDefault(c => c.Id == fd.Id);
-            if (cell is not null) cell.Content = fd.Content;
+            var cell = notebook.Cells.FirstOrDefault(c => c.Id == cellId);
+            if (cell is not null) cell.Content = content ?? "";
         }
 
         await notebooks.SaveAsync(notebook);
         return Ok();
     }
 }
-
-public record CellFormData(string Id, string Content);

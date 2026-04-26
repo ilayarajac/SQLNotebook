@@ -27,12 +27,12 @@ public class QueryService(IConfiguration config)
 
             // Execute all statements, return last SELECT result
             var statements = sql.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            IEnumerable<IDictionary<string, object?>>? lastRows = null;
+            IEnumerable<dynamic>? lastRows = null;
 
             foreach (var stmt in statements)
             {
                 if (string.IsNullOrWhiteSpace(stmt)) continue;
-                lastRows = await conn.QueryAsync<IDictionary<string, object?>>(stmt, dp) as IEnumerable<IDictionary<string, object?>>;
+                lastRows = await conn.QueryAsync(stmt, dp);
             }
 
             sw.Stop();
@@ -40,11 +40,14 @@ public class QueryService(IConfiguration config)
 
             if (lastRows is not null)
             {
-                var rowList = lastRows.ToList();
+                var rowList = lastRows
+                    .Select(r => (IDictionary<string, object?>)r)
+                    .ToList();
+
                 if (rowList.Count > 0)
                 {
                     result.Columns = rowList[0].Keys.ToList();
-                    result.Rows = rowList.Select(r => r.Values.Cast<object?>().ToList()).ToList();
+                    result.Rows = rowList.Select(r => r.Values.ToList()).ToList();
                 }
             }
         }
@@ -60,9 +63,9 @@ public class QueryService(IConfiguration config)
 
     private DbConnection OpenConnection()
     {
-        var provider = config["DefaultConnection:Provider"] ?? "sqlite";
-        var connStr = config["DefaultConnection:ConnectionString"]
-            ?? $"Data Source={Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sqlbook", "default.db")}";
+        var provider = config["DefaultConnection:Provider"] is { Length: > 0 } p ? p : "sqlite";
+        var defaultDb = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sqlbook", "default.db");
+        var connStr = config["DefaultConnection:ConnectionString"] is { Length: > 0 } cs ? cs : $"Data Source={defaultDb}";
 
         return provider.ToLower() switch
         {

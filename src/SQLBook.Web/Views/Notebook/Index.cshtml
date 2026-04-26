@@ -1,9 +1,13 @@
 @model SQLBook.Web.Models.Notebook
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
 @{
     ViewData["Title"] = Model.Title;
+    var dbProvider = Config["DefaultConnection:Provider"] is { Length: > 0 } p ? p : "sqlite";
 }
 
-<div class="notebook-layout d-flex" style="min-height: calc(100vh - 56px);">
+<div class="notebook-layout d-flex" data-db-provider="@dbProvider" style="min-height: calc(100vh - 56px);">
+@{ /* pass db provider to editor.js via body dataset */ }
+<script>document.body.dataset.dbProvider = '@dbProvider';</script>
 
     <!-- Schema Sidebar -->
     <aside class="schema-sidebar border-end bg-light p-2" style="width:220px; min-width:220px; overflow-y:auto;">
@@ -26,16 +30,22 @@
     <div class="flex-grow-1 p-3">
 
         <!-- Notebook Title -->
-        <div class="mb-3">
+        <div class="mb-3 position-relative title-wrap">
             <input type="text"
                    id="notebook-title"
                    value="@Model.Title"
-                   class="form-control form-control-lg fw-bold border-0 border-bottom rounded-0 px-0"
+                   class="form-control form-control-lg fw-bold border-0 border-bottom rounded-0 px-0 pe-4"
                    placeholder="Untitled Notebook"
                    hx-post="/notebook/@Model.Id/autosave"
                    hx-trigger="input delay:800ms"
                    hx-swap="none"
-                   name="title" />
+                   name="title"
+                   title="Click to rename" />
+            <span class="title-edit-hint text-muted" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:0.85rem;">✏</span>
+            <span id="title-saved-indicator"
+                  class="text-success ms-2 small"
+                  style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);"
+                  hx-on:htmx:after-request="this.style.display='inline';setTimeout(()=>this.style.display='none',1500)">✓ saved</span>
         </div>
 
         <!-- Cells Container -->
@@ -67,17 +77,5 @@
 </div>
 
 @section Scripts {
-<script>
-// Ctrl+Enter to run the focused cell
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        const active = document.activeElement;
-        const cell = active?.closest('.nb-cell');
-        if (cell) {
-            const btn = cell.querySelector('.btn-run');
-            if (btn) htmx.trigger(btn, 'click');
-        }
-    }
-});
-</script>
+<script src="~/js/editor.bundle.js"></script>
 }

@@ -18,6 +18,9 @@ appsettings.Development.json
 .DS_Store
 Thumbs.db
 
+## JS build
+src/SQLBook.Web/editor/node_modules/
+
 ## Rider/VS Code
 .idea/
 .vscode/

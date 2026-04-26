@@ -10,9 +10,9 @@ public class SchemaService(IConfiguration config)
 {
     public async Task<List<SchemaTable>> GetSchemaAsync()
     {
-        var provider = config["DefaultConnection:Provider"] ?? "sqlite";
-        var connStr = config["DefaultConnection:ConnectionString"]
-            ?? $"Data Source={Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sqlbook", "default.db")}";
+        var provider = config["DefaultConnection:Provider"] is { Length: > 0 } p ? p : "sqlite";
+        var defaultDb = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sqlbook", "default.db");
+        var connStr = config["DefaultConnection:ConnectionString"] is { Length: > 0 } cs ? cs : $"Data Source={defaultDb}";
 
         try
         {
