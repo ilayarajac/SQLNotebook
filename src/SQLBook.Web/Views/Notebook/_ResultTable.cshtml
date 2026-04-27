@@ -1,4 +1,5 @@
 @model SQLBook.Web.Models.CellResult
+@using System.Text.Json
 
 @if (Model.HasError)
 {
@@ -7,36 +8,35 @@
         <small class="d-block text-muted mt-1">@Model.ElapsedMs ms</small>
     </div>
 }
-else if (!Model.Columns.Any())
+else if (!Model.ResultSets.Any())
 {
     <div class="text-muted small px-3 py-2">Query executed successfully — no rows returned. (@Model.ElapsedMs ms)</div>
 }
 else
 {
-    <div class="result-toolbar d-flex justify-content-between align-items-center px-3 py-1 border-top bg-light">
-        <small class="text-muted">@Model.RowCount row@(Model.RowCount != 1 ? "s" : "") &bull; @Model.ElapsedMs ms</small>
-    </div>
-    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-        <table class="table table-sm table-bordered table-hover mb-0 result-table">
-            <thead class="table-dark sticky-top">
-                <tr>
-                    @foreach (var col in Model.Columns)
-                    {
-                        <th>@col</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in Model.Rows)
-                {
-                    <tr>
-                        @foreach (var val in row)
-                        {
-                            <td>@(val?.ToString() ?? "<null>")</td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    @for (var i = 0; i < Model.ResultSets.Count; i++)
+    {
+        var rs = Model.ResultSets[i];
+        <div class="result-block">
+            <div class="result-toolbar d-flex justify-content-between align-items-center px-3 py-1 border-top bg-light">
+                <small class="text-muted">
+                    @if (Model.ResultSets.Count > 1) { <span>Result @(i + 1) — </span> }
+                    @rs.RowCount row@(rs.RowCount != 1 ? "s" : "")
+                    @if (i == 0) { <span> &bull; @Model.ElapsedMs ms</span> }
+                </small>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-xs grid-toggle" data-grid-toggle="sort"       title="Toggle sorting">⇅ Sort</button>
+                    <button class="btn btn-xs grid-toggle" data-grid-toggle="filter"     title="Toggle column filters">▽ Filter</button>
+                    <button class="btn btn-xs grid-toggle" data-grid-toggle="pagination" title="Toggle pagination">≡ Pages</button>
+                    <button class="btn btn-xs grid-toggle" data-grid-toggle="layout"     title="Toggle column resize &amp; reorder">↔ Cols</button>
+                    <button class="btn btn-xs btn-outline-secondary grid-export-csv"     title="Export visible rows as CSV">⬇ CSV</button>
+                </div>
+            </div>
+            <div class="tabulator-host">
+                <script type="application/json" class="grid-data">
+                    @Html.Raw(JsonSerializer.Serialize(new { columns = rs.Columns, rows = rs.Rows }))
+                </script>
+            </div>
+        </div>
+    }
 }

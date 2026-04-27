@@ -44,3 +44,74 @@ body {
 .htmx-request .htmx-indicator {
     display: inline;
 }
+
+/* Grid toggle buttons */
+.btn-xs {
+    padding: 0.1rem 0.45rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    border-radius: 0.2rem;
+}
+
+.grid-toggle {
+    border-color: #dee2e6;
+    color: #adb5bd;
+    background: transparent;
+}
+
+.grid-toggle.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Markdown preview */
+.md-preview {
+    min-height: 60px;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    cursor: text;
+}
+.md-preview:hover { background: #f8f9fa; }
+.md-preview h1  { font-size: 1.5rem;  border-bottom: 1px solid #dee2e6; padding-bottom: .25em; margin: .5rem 0; }
+.md-preview h2  { font-size: 1.25rem; border-bottom: 1px solid #dee2e6; padding-bottom: .25em; margin: .5rem 0; }
+.md-preview h3  { font-size: 1.1rem; margin: .4rem 0; }
+.md-preview p   { margin-bottom: .4rem; }
+.md-preview p:last-child { margin-bottom: 0; }
+.md-preview ul,
+.md-preview ol  { padding-left: 1.4rem; margin-bottom: .4rem; }
+.md-preview code {
+    background: #f1f3f5;
+    padding: .1em .35em;
+    border-radius: 3px;
+    font-size: .85em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.md-preview pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: .85rem 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-bottom: .4rem;
+}
+.md-preview pre code { background: none; padding: 0; color: inherit; }
+.md-preview blockquote {
+    border-left: 4px solid #dee2e6;
+    padding-left: 1rem;
+    color: #6c757d;
+    margin: .4rem 0;
+}
+.md-preview table { border-collapse: collapse; width: 100%; margin-bottom: .4rem; font-size: .85rem; }
+.md-preview th,
+.md-preview td  { border: 1px solid #dee2e6; padding: .35rem .6rem; }
+.md-preview th  { background: #f8f9fa; font-weight: 600; }
+.md-preview a   { color: #0d6efd; }
+.md-preview img { max-width: 100%; }
+
+/* Grid OFF-state rules (toggled via JS classList) */
+.grid-sort-off   .tabulator-col-sorter          { display: none !important; }
+.grid-page-off   .tabulator-footer              { display: none !important; }
+.grid-layout-off .tabulator-col-resize-handle   { display: none !important; }
+.grid-layout-off .tabulator-col                 { cursor: default; }

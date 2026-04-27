@@ -11,10 +11,16 @@ namespace SQLBook.Web.Services;
 
 public class QueryService(IConfiguration config)
 {
-    public async Task<CellResult> RunAsync(string sql, Dictionary<string, string> parameters)
+    public async Task<CellResult> RunAsync(string? sql, Dictionary<string, string> parameters)
     {
         var result = new CellResult();
         var sw = Stopwatch.StartNew();
+
+        if (string.IsNullOrWhiteSpace(sql))
+        {
+            result.Error = "No query to run.";
+            return result;
+        }
 
         try
         {
@@ -25,31 +31,24 @@ public class QueryService(IConfiguration config)
             foreach (var (k, v) in parameters)
                 dp.Add(k, v);
 
-            // Execute all statements, return last SELECT result
+            // Split on semicolons and execute each statement; collect every SELECT result
             var statements = sql.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            IEnumerable<dynamic>? lastRows = null;
 
             foreach (var stmt in statements)
             {
                 if (string.IsNullOrWhiteSpace(stmt)) continue;
-                lastRows = await conn.QueryAsync(stmt, dp);
+                var rows = await conn.QueryAsync(stmt, parameters.Count > 0 ? dp : null);
+                var rowList = rows.Select(r => (IDictionary<string, object?>)r).ToList();
+                if (rowList.Count > 0)
+                    result.ResultSets.Add(new ResultSet
+                    {
+                        Columns = rowList[0].Keys.ToList(),
+                        Rows    = rowList.Select(r => r.Values.ToList()).ToList()
+                    });
             }
 
             sw.Stop();
             result.ElapsedMs = sw.ElapsedMilliseconds;
-
-            if (lastRows is not null)
-            {
-                var rowList = lastRows
-                    .Select(r => (IDictionary<string, object?>)r)
-                    .ToList();
-
-                if (rowList.Count > 0)
-                {
-                    result.Columns = rowList[0].Keys.ToList();
-                    result.Rows = rowList.Select(r => r.Values.ToList()).ToList();
-                }
-            }
         }
         catch (Exception ex)
         {

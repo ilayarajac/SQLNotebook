@@ -2,7 +2,9 @@
   "name": "sqlbook-editor",
   "private": true,
   "scripts": {
-    "build": "esbuild editor.js --bundle --minify --outfile=../wwwroot/js/editor.bundle.js",
+    "build": "npm run build:editor && npm run build:grid",
+    "build:editor": "esbuild editor.js --bundle --minify --outfile=../wwwroot/js/editor.bundle.js",
+    "build:grid": "esbuild grid.js --bundle --minify --outfile=../wwwroot/js/grid.bundle.js",
     "watch": "esbuild editor.js --bundle --outfile=../wwwroot/js/editor.bundle.js --watch"
   },
   "devDependencies": {
@@ -13,6 +15,8 @@
     "@codemirror/lang-sql": "^6.9",
     "@codemirror/state": "^6.5",
     "@codemirror/view": "^6.36",
-    "codemirror": "^6.0.1"
+    "codemirror": "^6.0.1",
+    "marked": "^14.0.0",
+    "tabulator-tables": "^6.3.0"
   }
 }

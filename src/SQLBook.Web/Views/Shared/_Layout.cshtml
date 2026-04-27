@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - SQLBook</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/js/grid.bundle.css" asp-append-version="true" />
     <script src="~/js/htmx.min.js"></script>
 </head>
 <body hx-boost="false">
@@ -23,6 +24,7 @@
         @RenderBody()
     </main>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/grid.bundle.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

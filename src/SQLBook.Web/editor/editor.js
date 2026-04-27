@@ -1,3 +1,4 @@
+import { marked } from 'marked';
 import { EditorView, keymap } from '@codemirror/view'
 import { EditorState, Prec } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
@@ -145,11 +146,97 @@ function initEditor(host, schemaMap, dialect) {
   return view;
 }
 
-// Initialise all uninitialised .cm-host elements on the page
+// ---------- Markdown cells ----------
+
+marked.use({ gfm: true, breaks: true });
+
+function initMarkdownCell(host) {
+  host.setAttribute('data-md-init', '1');
+  const cellId    = host.dataset.cellId;
+  const editDiv   = document.getElementById('md-edit-'    + cellId);
+  const previewDiv = document.getElementById('md-preview-' + cellId);
+  const textarea  = editDiv?.querySelector('textarea');
+  const toggleBtn = document.getElementById('md-toggle-'  + cellId);
+  if (!editDiv || !previewDiv || !textarea || !toggleBtn) return;
+
+  let isPreview = false;
+
+  function showPreview() {
+    previewDiv.innerHTML = marked.parse(textarea.value || '');
+    editDiv.style.display    = 'none';
+    previewDiv.style.display = 'block';
+    toggleBtn.textContent    = '✏ Edit';
+    toggleBtn.classList.add('active');
+    isPreview = true;
+  }
+
+  function showEdit() {
+    editDiv.style.display    = 'block';
+    previewDiv.style.display = 'none';
+    toggleBtn.textContent    = '👁 Preview';
+    toggleBtn.classList.remove('active');
+    isPreview = false;
+    setTimeout(() => textarea.focus(), 0);
+  }
+
+  // Toggle button
+  toggleBtn.addEventListener('click', () => { isPreview ? showEdit() : showPreview(); });
+
+  // Auto-preview on blur — but not when focus moved to the toggle button itself
+  textarea.addEventListener('blur', e => {
+    if (e.relatedTarget === toggleBtn) return;
+    if (textarea.value.trim()) showPreview();
+  });
+
+  // Click anywhere on the preview to go back to edit
+  previewDiv.addEventListener('click', showEdit);
+
+  // Start in preview when the cell already has content (e.g. loaded from file)
+  if (host.dataset.hasContent === 'true') showPreview();
+}
+
+// ---------- SQL + Markdown initialisation ----------
+
+// Initialise all uninitialised .cm-host and .md-host elements on the page
 function initAll(schemaMap, dialect) {
   document.querySelectorAll('.cm-host:not([data-cm-init])').forEach(host => {
     host.setAttribute('data-cm-init', '1');
     initEditor(host, schemaMap, dialect);
+  });
+  document.querySelectorAll('.md-host:not([data-md-init])').forEach(host => {
+    initMarkdownCell(host);
+  });
+}
+
+// ---------- Run All ----------
+
+function initRunAll() {
+  const btn = document.getElementById('run-all-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const runBtns = [...document.querySelectorAll('#cells-container .btn-run')];
+    if (runBtns.length === 0) return;
+
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '⏳ Running…';
+
+    for (const runBtn of runBtns) {
+      await new Promise(resolve => {
+        const handler = e => {
+          if (e.detail.elt === runBtn) {
+            document.body.removeEventListener('htmx:afterRequest', handler);
+            resolve();
+          }
+        };
+        document.body.addEventListener('htmx:afterRequest', handler);
+        runBtn.click();
+      });
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = original;
   });
 }
 
@@ -167,6 +254,7 @@ async function boot() {
   } catch (_) { /* schema autocomplete unavailable — editor still works */ }
 
   initAll(schemaMap, dialect);
+  initRunAll();
 
   // Re-init editors injected by HTMX after initial load
   document.body.addEventListener('htmx:afterSwap', () => {

@@ -6,7 +6,7 @@ namespace SQLBook.Web.Controllers;
 public class QueryController(QueryService queryService) : Controller
 {
     [HttpPost("/query/run")]
-    public async Task<IActionResult> Run([FromForm] string sql, [FromForm] string cellId)
+    public async Task<IActionResult> Run([FromForm(Name = "content")] string? sql, [FromForm] string cellId)
     {
         // Collect any @param= style parameters from form
         var parameters = Request.Form

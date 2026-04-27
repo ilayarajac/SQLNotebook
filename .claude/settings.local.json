@@ -3,7 +3,8 @@
     "allow": [
       "Bash(dotnet --version)",
       "Bash(gh auth *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(git add *)"
     ]
   }
 }

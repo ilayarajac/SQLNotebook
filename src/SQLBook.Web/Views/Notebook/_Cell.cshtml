@@ -20,6 +20,13 @@
                     ▶ Run
                 </button>
             }
+            @if (cell.Type == "markdown")
+            {
+                <button id="md-toggle-@cell.Id"
+                        class="btn btn-sm btn-outline-secondary">
+                    👁 Preview
+                </button>
+            }
             <button class="btn btn-sm btn-outline-danger"
                     hx-delete="/notebook/@nb.Id/cell/@cell.Id"
                     hx-target="#cell-@cell.Id"
@@ -52,14 +59,21 @@
         {
             <form id="cell-form-@cell.Id">
                 <input type="hidden" name="cellId" value="@cell.Id" />
-                <textarea name="content"
-                          class="form-control font-monospace border-0"
-                          rows="4"
-                          placeholder="# Markdown content..."
-                          hx-post="/notebook/@nb.Id/autosave"
-                          hx-trigger="input delay:800ms"
-                          hx-swap="none"
-                          hx-include="#cell-form-@cell.Id, #notebook-title">@cell.Content</textarea>
+                <div class="md-host"
+                     data-cell-id="@cell.Id"
+                     data-has-content="@(!string.IsNullOrWhiteSpace(cell.Content) ? "true" : "false")">
+                    <div id="md-edit-@cell.Id">
+                        <textarea name="content"
+                                  class="form-control font-monospace border-0 rounded-0"
+                                  rows="4"
+                                  placeholder="Write markdown here… click Preview to render"
+                                  hx-post="/notebook/@nb.Id/autosave"
+                                  hx-trigger="input delay:800ms"
+                                  hx-swap="none"
+                                  hx-include="#cell-form-@cell.Id, #notebook-title">@cell.Content</textarea>
+                    </div>
+                    <div id="md-preview-@cell.Id" class="md-preview px-3 py-2" style="display:none;"></div>
+                </div>
             </form>
         }
     </div>
