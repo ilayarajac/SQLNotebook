@@ -6,6 +6,8 @@
 
 <div class="nb-cell card mb-3" id="cell-@cell.Id" data-cell-id="@cell.Id">
     <div class="card-header d-flex justify-content-between align-items-center py-1 px-3 bg-light">
+        <span class="cell-drag-handle text-muted me-1" title="Drag to reorder">⠿</span>
+        <button class="cell-collapse-btn btn btn-link btn-sm p-0 me-2 text-muted lh-1" title="Collapse">⊖</button>
         <span class="badge @(cell.Type == "sql" ? "bg-primary" : "bg-secondary") me-2">@cell.Type.ToUpper()</span>
 
         <div class="ms-auto d-flex gap-1">

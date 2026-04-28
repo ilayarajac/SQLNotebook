@@ -208,6 +208,156 @@ function initAll(schemaMap, dialect) {
   });
 }
 
+// ---------- Preview mode ----------
+
+function initPreviewMode() {
+  const btn       = document.getElementById('preview-mode-btn');
+  const container = document.getElementById('cells-container');
+  const toolbar   = btn?.closest('.d-flex');   // the toolbar row
+  if (!btn || !container) return;
+
+  btn.addEventListener('click', () => {
+    const entering = container.classList.toggle('preview-mode');
+
+    // Swap button label and style
+    btn.textContent = entering ? '✏ Edit Mode' : '👁 Preview';
+    btn.classList.toggle('btn-outline-secondary', !entering);
+    btn.classList.toggle('btn-secondary',          entering);
+
+    // Hide/show the other toolbar buttons so only Exit button remains
+    if (toolbar) {
+      toolbar.querySelectorAll('button:not(#preview-mode-btn)').forEach(b => {
+        b.style.display = entering ? 'none' : '';
+      });
+    }
+
+    if (entering) {
+      // Ensure every markdown cell has rendered preview content
+      document.querySelectorAll('.md-host').forEach(host => {
+        const cellId  = host.dataset.cellId;
+        const textarea = document.getElementById('md-edit-' + cellId)?.querySelector('textarea');
+        const preview  = document.getElementById('md-preview-' + cellId);
+        if (textarea && preview && !preview.innerHTML.trim()) {
+          preview.innerHTML = marked.parse(textarea.value || '');
+        }
+      });
+    }
+  });
+}
+
+// ---------- Cell drag-and-drop reorder ----------
+
+function initDragReorder() {
+  const container = document.getElementById('cells-container');
+  if (!container) return;
+  const notebookId = container.dataset.notebookId;
+  let dragging = null;
+
+  // Make a cell draggable only while the handle is held
+  container.addEventListener('mousedown', e => {
+    if (e.target.closest('.cell-drag-handle')) {
+      const cell = e.target.closest('.nb-cell');
+      if (cell) cell.setAttribute('draggable', 'true');
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) {
+      container.querySelectorAll('.nb-cell[draggable]')
+        .forEach(c => c.removeAttribute('draggable'));
+    }
+  });
+
+  container.addEventListener('dragstart', e => {
+    const cell = e.target.closest('.nb-cell');
+    if (!cell) return;
+    dragging = cell;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => cell.classList.add('cell-dragging'), 0);
+  });
+
+  container.addEventListener('dragend', () => {
+    if (dragging) {
+      dragging.classList.remove('cell-dragging');
+      dragging.removeAttribute('draggable');
+      dragging = null;
+    }
+    clearDropIndicators();
+  });
+
+  container.addEventListener('dragover', e => {
+    e.preventDefault();
+    const cell = e.target.closest('.nb-cell');
+    if (!cell || cell === dragging) return;
+    clearDropIndicators();
+    const midY = cell.getBoundingClientRect().top + cell.offsetHeight / 2;
+    cell.classList.add(e.clientY < midY ? 'drop-above' : 'drop-below');
+  });
+
+  container.addEventListener('dragleave', e => {
+    if (!container.contains(e.relatedTarget)) clearDropIndicators();
+  });
+
+  container.addEventListener('drop', e => {
+    e.preventDefault();
+    const target = e.target.closest('.nb-cell');
+    if (!target || !dragging || target === dragging) return;
+
+    const midY = target.getBoundingClientRect().top + target.offsetHeight / 2;
+    if (e.clientY < midY) container.insertBefore(dragging, target);
+    else                   container.insertBefore(dragging, target.nextSibling);
+
+    clearDropIndicators();
+    persistOrder(container, notebookId);
+  });
+
+  function clearDropIndicators() {
+    container.querySelectorAll('.drop-above, .drop-below')
+      .forEach(c => c.classList.remove('drop-above', 'drop-below'));
+  }
+
+  function persistOrder(container, notebookId) {
+    const ids = [...container.querySelectorAll('.nb-cell')].map(c => c.dataset.cellId);
+    fetch(`/notebook/${notebookId}/cell/reorder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ids),
+    });
+  }
+}
+
+// ---------- Cell collapse ----------
+
+function setCellCollapsed(cell, collapsed) {
+  cell.classList.toggle('collapsed', collapsed);
+  const btn = cell.querySelector('.cell-collapse-btn');
+  if (btn) {
+    btn.textContent = collapsed ? '⊕' : '⊖';
+    btn.title       = collapsed ? 'Expand' : 'Collapse';
+  }
+}
+
+function initCollapse() {
+  // Per-cell toggle — event delegation so newly added cells work too
+  document.getElementById('cells-container')?.addEventListener('click', e => {
+    const btn = e.target.closest('.cell-collapse-btn');
+    if (!btn) return;
+    const cell = btn.closest('.nb-cell');
+    if (cell) setCellCollapsed(cell, !cell.classList.contains('collapsed'));
+  });
+
+  // Root toggle: collapses all when any are expanded, expands all otherwise
+  const rootBtn = document.getElementById('collapse-all-btn');
+  if (!rootBtn) return;
+
+  rootBtn.addEventListener('click', () => {
+    const cells = [...document.querySelectorAll('#cells-container .nb-cell')];
+    const shouldCollapse = cells.some(c => !c.classList.contains('collapsed'));
+    cells.forEach(c => setCellCollapsed(c, shouldCollapse));
+    rootBtn.textContent = shouldCollapse ? '⊞ Expand All' : '⊟ Collapse All';
+  });
+}
+
 // ---------- Run All ----------
 
 function initRunAll() {
@@ -254,6 +404,9 @@ async function boot() {
   } catch (_) { /* schema autocomplete unavailable — editor still works */ }
 
   initAll(schemaMap, dialect);
+  initPreviewMode();
+  initDragReorder();
+  initCollapse();
   initRunAll();
 
   // Re-init editors injected by HTMX after initial load

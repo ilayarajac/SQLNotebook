@@ -110,6 +110,39 @@ body {
 .md-preview a   { color: #0d6efd; }
 .md-preview img { max-width: 100%; }
 
+/* ── Preview / print mode ────────────────────────────────────────────────── */
+#cells-container.preview-mode .nb-cell {
+    border: none; border-radius: 0; box-shadow: none; margin-bottom: 2rem;
+}
+#cells-container.preview-mode .card-header      { display: none !important; }
+#cells-container.preview-mode .result-toolbar   { display: none !important; }
+#cells-container.preview-mode .tabulator-footer { display: none !important; }
+#cells-container.preview-mode [id^="md-edit-"]     { display: none !important; }
+#cells-container.preview-mode [id^="md-preview-"]  { display: block !important; }
+/* expand collapsed cells so nothing is hidden in the report */
+#cells-container.preview-mode .nb-cell .card-body,
+#cells-container.preview-mode .nb-cell .cell-result { display: block !important; }
+
+/* SQL query: keep syntax colours, strip interactive chrome */
+#cells-container.preview-mode .cm-host { margin-bottom: 0.75rem; }
+#cells-container.preview-mode .cm-editor { pointer-events: none; border-radius: 4px !important; }
+#cells-container.preview-mode .cm-editor .cm-gutters { display: none !important; }
+#cells-container.preview-mode .cm-editor .cm-scroller { overflow: visible !important; }
+#cells-container.preview-mode .cm-editor .cm-cursor  { display: none !important; }
+#cells-container.preview-mode .cm-editor .cm-activeLine { background: transparent !important; }
+
+/* Cell drag-and-drop reorder */
+.cell-drag-handle { cursor: grab; font-size: 1rem; line-height: 1; user-select: none; }
+.cell-drag-handle:active { cursor: grabbing; }
+.nb-cell.cell-dragging { opacity: 0.35; }
+.nb-cell.drop-above { box-shadow: 0 -3px 0 0 #0d6efd; }
+.nb-cell.drop-below { box-shadow: 0  3px 0 0 #0d6efd; }
+
+/* Cell collapse */
+.nb-cell.collapsed .card-body,
+.nb-cell.collapsed .cell-result { display: none !important; }
+.cell-collapse-btn { font-size: 1rem; line-height: 1; text-decoration: none; }
+
 /* Grid OFF-state rules (toggled via JS classList) */
 .grid-sort-off   .tabulator-col-sorter          { display: none !important; }
 .grid-page-off   .tabulator-footer              { display: none !important; }
