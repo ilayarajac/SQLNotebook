@@ -26,6 +26,23 @@ using (var scope = app.Services.CreateScope())
     await db.InitialiseAsync();
 }
 
+// Seed sample notebooks on first run (skips any that already exist)
+using (var scope = app.Services.CreateScope())
+{
+    var notebookService = scope.ServiceProvider.GetRequiredService<NotebookService>();
+    var samplesDir = Path.Combine(AppContext.BaseDirectory, "Data", "Samples");
+    if (Directory.Exists(samplesDir))
+    {
+        foreach (var file in Directory.GetFiles(samplesDir, "*.json").OrderBy(f => f))
+        {
+            var json = await File.ReadAllTextAsync(file);
+            var sample = System.Text.Json.JsonSerializer.Deserialize<SQLBook.Web.Models.Notebook>(json);
+            if (sample is not null && await notebookService.GetAsync(sample.Id) is null)
+                await notebookService.SaveAsync(sample);
+        }
+    }
+}
+
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 

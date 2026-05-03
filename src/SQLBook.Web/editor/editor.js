@@ -195,6 +195,64 @@ function initMarkdownCell(host) {
   if (host.dataset.hasContent === 'true') showPreview();
 }
 
+// ---------- Params cells ----------
+
+function parseParams(text) {
+  const result = {};
+  for (const line of (text || '').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('--')) continue;
+    const m = trimmed.match(/^@([\w]+)\s*=\s*(.*)$/);
+    if (m) result[m[1]] = m[2].trim();
+  }
+  return result;
+}
+
+function sidebarParamsKey() {
+  const notebookId = document.getElementById('cells-container')?.dataset.notebookId;
+  return notebookId ? `sqlbook:sidebar-params:${notebookId}` : null;
+}
+
+function getAllParams() {
+  const merged = {};
+  // Sidebar params are the base (lowest priority)
+  const sidebarTa = document.getElementById('sidebar-params');
+  if (sidebarTa) Object.assign(merged, parseParams(sidebarTa.value));
+  // Params cells override sidebar params
+  document.querySelectorAll('.params-host textarea').forEach(ta => {
+    Object.assign(merged, parseParams(ta.value));
+  });
+  return merged;
+}
+
+
+function initParamsCell(host) {
+  host.setAttribute('data-params-init', '1');
+}
+
+function initSidebarParams() {
+  const ta    = document.getElementById('sidebar-params');
+  const clear = document.getElementById('sidebar-params-clear');
+  if (!ta) return;
+
+  const key = sidebarParamsKey();
+
+  // Restore persisted value
+  if (key) {
+    const saved = localStorage.getItem(key);
+    if (saved) ta.value = saved;
+  }
+
+  ta.addEventListener('input', () => {
+    if (key) localStorage.setItem(key, ta.value);
+  });
+
+  clear?.addEventListener('click', () => {
+    ta.value = '';
+    if (key) localStorage.removeItem(key);
+  });
+}
+
 // ---------- SQL + Markdown initialisation ----------
 
 // Initialise all uninitialised .cm-host and .md-host elements on the page
@@ -205,6 +263,9 @@ function initAll(schemaMap, dialect) {
   });
   document.querySelectorAll('.md-host:not([data-md-init])').forEach(host => {
     initMarkdownCell(host);
+  });
+  document.querySelectorAll('.params-host:not([data-params-init])').forEach(host => {
+    initParamsCell(host);
   });
 }
 
@@ -358,6 +419,31 @@ function initCollapse() {
   });
 }
 
+// ---------- Export PDF ----------
+
+function initExportPdf() {
+  const btn       = document.getElementById('export-pdf-btn');
+  const container = document.getElementById('cells-container');
+  if (!btn || !container) return;
+
+  btn.addEventListener('click', () => {
+    const wasPreview = container.classList.contains('preview-mode');
+
+    // Enter preview mode so markdown is rendered and editor chrome is hidden
+    if (!wasPreview) document.getElementById('preview-mode-btn')?.click();
+
+    // After printing (or cancel), restore previous state
+    const restore = () => {
+      if (!wasPreview) document.getElementById('preview-mode-btn')?.click();
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+
+    // Two rAF ticks to let preview-mode DOM changes flush before the print dialog opens
+    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+  });
+}
+
 // ---------- Run All ----------
 
 function initRunAll() {
@@ -375,12 +461,12 @@ function initRunAll() {
     for (const runBtn of runBtns) {
       await new Promise(resolve => {
         const handler = e => {
-          if (e.detail.elt === runBtn) {
-            document.body.removeEventListener('htmx:afterRequest', handler);
+          if (e.detail.elt === runBtn || e.target === runBtn) {
+            document.removeEventListener('htmx:afterRequest', handler);
             resolve();
           }
         };
-        document.body.addEventListener('htmx:afterRequest', handler);
+        document.addEventListener('htmx:afterRequest', handler);
         runBtn.click();
       });
     }
@@ -404,10 +490,21 @@ async function boot() {
   } catch (_) { /* schema autocomplete unavailable — editor still works */ }
 
   initAll(schemaMap, dialect);
+  initSidebarParams();
   initPreviewMode();
   initDragReorder();
   initCollapse();
   initRunAll();
+  initExportPdf();
+
+  // Inject @params into every SQL run request
+  document.body.addEventListener('htmx:configRequest', e => {
+    if (!e.detail.elt.classList.contains('btn-run')) return;
+    const params = getAllParams();
+    for (const [k, v] of Object.entries(params)) {
+      e.detail.parameters[`param_${k}`] = v;
+    }
+  });
 
   // Re-init editors injected by HTMX after initial load
   document.body.addEventListener('htmx:afterSwap', () => {

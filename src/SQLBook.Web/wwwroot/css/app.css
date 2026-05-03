@@ -143,8 +143,71 @@ body {
 .nb-cell.collapsed .cell-result { display: none !important; }
 .cell-collapse-btn { font-size: 1rem; line-height: 1; text-decoration: none; }
 
+/* Params cell textarea — higher specificity than .nb-cell textarea */
+.nb-cell textarea.params-textarea {
+    background: #fffbea !important;
+    color: #4a3800 !important;
+    font-size: 0.875rem;
+    resize: vertical;
+}
+.nb-cell textarea.params-textarea:focus {
+    background: #fffbea !important;
+    color: #4a3800 !important;
+    box-shadow: none;
+    border-color: #ffc107;
+}
+
 /* Grid OFF-state rules (toggled via JS classList) */
 .grid-sort-off   .tabulator-col-sorter          { display: none !important; }
 .grid-page-off   .tabulator-footer              { display: none !important; }
 .grid-layout-off .tabulator-col-resize-handle   { display: none !important; }
 .grid-layout-off .tabulator-col                 { cursor: default; }
+
+/* ── PDF / Print export ──────────────────────────────────────────────────── */
+@media print {
+  /* Hide all interactive chrome */
+  header,
+  .schema-sidebar,
+  #notebook-toolbar,
+  #add-cell-bar { display: none !important; }
+
+  /* Remove layout flex so content fills the full page width */
+  .notebook-layout { display: block !important; }
+  .flex-grow-1 { padding: 0.5rem 0 0 0 !important; }
+
+  /* Notebook title: look like a heading, not an input box */
+  #notebook-title {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    font-size: 1.4rem;
+    pointer-events: none;
+  }
+  .title-edit-hint,
+  #title-saved-indicator { display: none !important; }
+
+  /* Apply all preview-mode cell rules */
+  .nb-cell { border: none !important; border-radius: 0 !important; box-shadow: none !important; margin-bottom: 2rem !important; }
+  .card-header                              { display: none !important; }
+  .result-toolbar                           { display: none !important; }
+  .tabulator-footer                         { display: none !important; }
+  [id^="md-edit-"]                          { display: none !important; }
+  [id^="md-preview-"]                       { display: block !important; }
+  .nb-cell .card-body,
+  .nb-cell .cell-result                     { display: block !important; }
+
+  /* CodeMirror: read-only appearance, no gutter chrome */
+  .cm-host                                  { margin-bottom: 0.75rem; }
+  .cm-editor                                { pointer-events: none; border-radius: 4px !important; }
+  .cm-editor .cm-gutters                    { display: none !important; }
+  .cm-editor .cm-scroller                   { overflow: visible !important; }
+  .cm-editor .cm-cursor                     { display: none !important; }
+  .cm-editor .cm-activeLine                 { background: transparent !important; }
+
+  /* Avoid page breaks mid-cell */
+  .nb-cell { break-inside: avoid; }
+
+  /* Print colours: keep syntax highlighting, allow backgrounds */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
