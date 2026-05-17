@@ -1,9 +1,71 @@
+/* ── Bootstrap 5.3 compact theme ────────────────────────────────────────── */
+:root {
+  /* Primary = Bootstrap blue */
+  --bs-primary:             #0d6efd;
+  --bs-primary-rgb:         13, 110, 253;
+  --bs-link-color:          #0d6efd;
+  --bs-link-color-rgb:      13, 110, 253;
+
+  /* Smaller base font — fits more on screen */
+  --bs-body-font-size:      0.8125rem;   /* 13 px */
+  --bs-body-line-height:    1.4;
+}
+
+/* Compact navbar */
+.navbar {
+  --bs-navbar-padding-y:  0.2rem;
+  font-size: 0.8125rem;
+}
+.navbar-brand { font-size: 0.875rem; }
+
+/* Compact cards */
+.card {
+  --bs-card-spacer-y:       0.4rem;
+  --bs-card-spacer-x:       0.6rem;
+  --bs-card-cap-padding-y:  0.25rem;
+  --bs-card-cap-padding-x:  0.6rem;
+}
+
+/* Compact buttons */
+.btn    { --bs-btn-font-size: 0.8rem;  --bs-btn-padding-y: 0.28rem; --bs-btn-padding-x: 0.6rem; }
+.btn-sm { --bs-btn-font-size: 0.73rem; --bs-btn-padding-y: 0.18rem; --bs-btn-padding-x: 0.45rem; }
+
+/* Compact form controls */
+.form-control,
+.form-select    { font-size: 0.8125rem; padding: 0.25rem 0.5rem; }
+.form-control-sm { font-size: 0.75rem;  padding: 0.15rem 0.4rem; }
+
+/* Compact list group */
+.list-group-item {
+  --bs-list-group-item-padding-y: 0.35rem;
+  --bs-list-group-item-padding-x: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Compact badges */
+.badge {
+  --bs-badge-padding-y: 0.25em;
+  --bs-badge-padding-x: 0.45em;
+  --bs-badge-font-size: 0.68em;
+}
+
+/* Compact alerts */
+.alert { --bs-alert-padding-y: 0.4rem; --bs-alert-padding-x: 0.75rem; font-size: 0.8125rem; }
+
+/* Compact dropdown */
+.dropdown-menu { font-size: 0.8rem; }
+.dropdown-item { padding: 0.2rem 0.75rem; }
+
 body {
     background: #f8f9fa;
 }
 
 .nb-cell .card-header {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+}
+
+.nb-cell {
+    margin-bottom: 0.5rem !important;
 }
 
 .nb-cell textarea {
@@ -173,7 +235,7 @@ body {
 
   /* Remove layout flex so content fills the full page width */
   .notebook-layout { display: block !important; }
-  .flex-grow-1 { padding: 0.5rem 0 0 0 !important; }
+  .flex-grow-1 { width: 100% !important; max-width: 100% !important; padding: 0.5rem 0 0 0 !important; }
 
   /* Notebook title: look like a heading, not an input box */
   #notebook-title {

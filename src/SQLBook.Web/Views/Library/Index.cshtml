@@ -3,32 +3,32 @@
     ViewData["Title"] = "Library";
 }
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">📚 Notebook Library</h1>
+<div class="container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h1 class="h5 mb-0 fw-semibold">📚 Notebook Library</h1>
         <form method="post" action="/notebook/create">
-            <button type="submit" class="btn btn-primary">+ New Notebook</button>
+            <button type="submit" class="btn btn-sm btn-primary">+ New Notebook</button>
         </form>
     </div>
 
-    <form method="get" class="row g-2 mb-4">
+    <form method="get" class="row g-2 mb-2">
         <div class="col-md-6">
-            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search notebooks..." />
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm" placeholder="Search notebooks..." />
         </div>
         <div class="col-md-4">
-            <input type="text" name="tag" value="@ViewBag.Tag" class="form-control" placeholder="Filter by tag..." />
+            <input type="text" name="tag" value="@ViewBag.Tag" class="form-control form-control-sm" placeholder="Filter by tag..." />
         </div>
         <div class="col-auto">
-            <button type="submit" class="btn btn-outline-secondary">Search</button>
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Search</button>
         </div>
     </form>
 
     @if (!Model.Any())
     {
-        <div class="text-center py-5 text-muted">
-            <p class="fs-5">No notebooks yet.</p>
+        <div class="text-center py-4 text-muted">
+            <p class="mb-2">No notebooks yet.</p>
             <form method="post" action="/notebook/create">
-                <button type="submit" class="btn btn-primary btn-lg">Create your first notebook</button>
+                <button type="submit" class="btn btn-sm btn-primary">Create your first notebook</button>
             </form>
         </div>
     }
@@ -37,17 +37,17 @@
         <div class="list-group">
             @foreach (var nb in Model)
             {
-                <a href="/notebook/@nb.Id" class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between">
-                        <h6 class="mb-1 fw-semibold">@nb.Title</h6>
-                        <small class="text-muted">@nb.UpdatedAt.ToString("MMM dd, yyyy")</small>
+                <a href="/notebook/@nb.Id" class="list-group-item list-group-item-action py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">@nb.Title</span>
+                        <small class="text-muted ms-2 text-nowrap">@nb.UpdatedAt.ToString("MMM dd, yyyy")</small>
                     </div>
                     @if (!string.IsNullOrEmpty(nb.Tags))
                     {
                         <div class="mt-1">
                             @foreach (var tag in nb.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                             {
-                                <span class="badge bg-secondary me-1">@tag</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1">@tag</span>
                             }
                         </div>
                     }
